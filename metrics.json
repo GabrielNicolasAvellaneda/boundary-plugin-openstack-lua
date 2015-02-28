@@ -1,0 +1,11 @@
+{
+  "result": [
+  {
+    "name": "BOUNDARY_LUA_SAMPLE",
+    "displayName": "Boundary Lua Sample Metric",
+    "description": "A sample lua metric that send random values.",
+    "unit": "percentage",
+    "displayNameShort": "Lua Sample",
+    "defaultAggregate": "avg"
+  }]
+}
