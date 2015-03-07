@@ -9,7 +9,8 @@ local math = require('math')
 local string = require('string')
 local os = require('os')
 local io = require('io')
-p(boundary)
+local http = require('http')
+
 local framework = {}
 
 local Plugin = Emitter:extend()
@@ -123,7 +124,70 @@ function CommandPlugin:onParseCommandOutput(output)
 	return {}
 end
 
-local NetPlugin : Plugin:extend()
+local NetPlugin = Plugin:extend()
 framework.NetPlugin = NetPlugin
+
+local HttpPlugin = Plugin:extend()
+framework.HttpPlugin = HttpPlugin
+
+function HttpPlugin:initialize(params)
+	Plugin.initialize(self, params)
+	
+	self.reqOptions = {
+		host = params.host,
+		port = params.port,
+		path = params.path
+	}
+end
+
+function HttpPlugin:error(err)
+	local msg = tostring(err)
+
+	print(msg)
+end
+
+function HttpPlugin:makeRequest(reqOptions, successCallback)
+	local req = http.request(reqOptions, function (res)
+
+
+		local data = ''
+		
+		res:on('data', function (chunk)
+			data = data .. chunk	
+			successCallback(data)
+			-- TODO: Verify when data its complete or when we need to use de end
+		end)
+
+		res:on('error', function (err)
+			local msg = 'Error while receiving a response: ' .. err.message
+			self:error(msg)
+		end)
+
+	end)
+	
+	req:on('error', function (err)
+		local msg = 'Error while sending a request: ' .. err.message
+		self:error(msg)
+	end)
+
+	req:done()
+end
+
+function HttpPlugin:onPoll()
+	self:makeRequest(self.reqOptions, function (data)
+		self:parseResponse(data)
+	end)
+end
+
+function HttpPlugin:parseResponse(data)
+	local metrics = self:onParseResponse(data) 
+	self:report(metrics)
+end
+
+function HttpPlugin:onParseResponse(data)
+	-- To be overriden on class instance
+	print(data)
+	return {}
+end
 
 return framework
