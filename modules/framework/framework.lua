@@ -13,7 +13,7 @@ local http = require('http')
 
 local framework = {}
 
-local DataSource = Object:extend()
+local DataSource = Emitter:extend()
 framework.DataSource = DataSource
 function DataSource:initialize(params)
 	self.params = params
@@ -68,7 +68,9 @@ function Plugin:initialize(params, dataSource)
 	self.dataSource = dataSource
 	self.version = params.version or '1.0'
 	self.name = params.name or 'Boundary Plugin'
-	
+
+	self.dataSource:on('error', function (msg) self:error(msg) end)
+
     print("_bevent:" .. self.name .. " up : version " .. self.version ..  "|t:info|tags:lua,plugin")
 end
 
@@ -139,7 +141,7 @@ function HttpPlugin:initialize(params)
 	}
 end
 
-function HttpPlugin:error(err)
+function Plugin:error(err)
 	local msg = tostring(err)
 
 	print(msg)
