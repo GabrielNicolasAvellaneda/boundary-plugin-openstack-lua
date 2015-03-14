@@ -1,33 +1,79 @@
 {
-    "description": "A simple test plugin for the LUA framework",
+    "description": "Metric collector for Openstack",
+    "command": "boundary-meter init.lua",
+    "command_lua": "boundary-meter init.lua",
     "icon" : "icon.png",
-    "command": "boundary-meter index.lua",
-    "metrics" : ["BOUNDARY_LUA_SAMPLE"],
-    "postExtract" : "",
-    "paramSchema": [
+    "metrics" : [
+        "OS_CPUUTIL_AVG",
+        "OS_CPUUTIL_SUM",
+        "OS_CPUUTIL_MIN",
+        "OS_CPUUTIL_MAX",
+        "OS_CPU_AVG",
+        "OS_CPU_SUM",
+        "OS_INSTANCE_SUM",
+        "OS_INSTANCE_MAX",
+        "OS_MEMORY_SUM",
+        "OS_MEMORY_AVG",
+        "OS_MEMORY_USAGE_SUM",
+        "OS_MEMORY_USAGE_AVG",
+        "OS_VOLUME_SUM",
+        "OS_VOLUME_AVG",
+        "OS_IMAGE_SUM",
+        "OS_IMAGE_AVG",
+        "OS_IMAGE_SIZE_SUM",
+        "OS_IMAGE_SIZE_AVG",
+        "OS_DISK_READ_RATE_SUM",
+        "OS_DISK_READ_RATE_AVG",
+        "OS_DISK_WRITE_RATE_SUM",
+        "OS_DISK_WRITE_RATE_AVG",
+        "OS_NETWORK_IN_BYTES_SUM",
+        "OS_NETWORK_IN_BYTES_AVG",
+        "OS_NETWORK_OUT_BYTES_SUM",
+        "OS_NETWORK_OUT_BYTES_AVG"
+    ],
+
+    "dashboards" : [
         {
-            "title": "Min val",
-            "name": "minValue",
-            "description": "The minimum random value",
-            "type": "string",
-            "default": 1,
-            "required": false
+            "name" : "Openstack",
+            "layout" : "d-w=4&d-h=4&d-pad=5&d-bg=none&d-g-OS_CPUUTIL_AVG=0-0-1-1&d-g-OS_CPUUTIL_SUM=1-0-1-1&d-g-OS_CPUUTIL_MIN=0-1-1-1&d-g-OS_CPUUTIL_MAX=0-2-1-1&d-g-OS_CPU_AVG=1-1-1-1&d-g-OS_CPU_SUM=1-2-1-1&d-g-OS_INSTANCE_SUM=2-2-1-1&d-g-OS_INSTANCE_MAX=0-3-1-1&d-g-OS_MEMORY_SUM=1-3-1-1&d-g-OS_MEMORY_AVG=2-3-1-1"
+        }
+    ],
+
+    "paramSchema" : [
+        {
+            "title" : "Service Tenant",
+            "name" : "service_tenant",
+            "description" : "The tenant to get into the service panel for OpenStack",
+            "type" : "string",
+            "required" : false
         },
         {
-            "title": "Max val",
-            "name": "maxValue",
-            "description": "The maximum random value",
-            "type": "string",
-            "default": 10,
-            "required": false
+            "title" : "Service Endpoint",
+            "name" : "service_endpoint",
+            "description" : "The endpoint to get into the service panel for OpenStack",
+            "type" : "string",
+            "required" : false
         },
         {
-            "title": "Poll Time (sec)",
-            "name": "pollInterval",
-            "description": "The Poll Interval to call the command. Defaults 5 seconds",
-            "type": "string",
-            "default": 5,
-            "required": false
+            "title" : "Service User",
+            "name" : "service_user",
+            "description" : "The user to get into the service panel for OpenStack",
+            "type" : "string",
+            "required" : false
+        },
+        {
+            "title" : "Service Timeout",
+            "name" : "service_timeout",
+            "description" : "The timeout to get into the service panel for OpenStack",
+            "type" : "integer",
+            "required" : false
+        },
+        {
+            "title" : "Service Password",
+            "name" : "service_password",
+            "description" : "The password to get into the service panel for OpenStack",
+            "type" : "password",
+            "required" : true
         }
     ]
 }
