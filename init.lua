@@ -28,22 +28,22 @@ end
 
 local get = framework.table.get
 
-function KeystoneClient:getToken(callback)
-	
-	local data = {auth = { tenantName = self.tenantName, passwordCredentials ={username = self.username,  password = self.password}} }
-	local path = '/v2.0/tokens'
+function post(options, data, callback, dataType)
+	local headers = {} 
+	if type(options.headers) == 'table' then
+		headers = options.headers
+	end
 
-	local postData = json.stringify(data)
-
-	local headers = {}
-	headers['Content-Type'] = 'application/json'
-	headers['Content-Length'] = #postData 	
-	headers['Accept'] = 'application/json'
+	if dataType == 'json' then
+		headers['Content-Type'] = 'application/json'
+		headers['Content-Length'] = #data 
+		headers['Accept'] = 'application/json'
+	end
 
 	local reqOptions = {
-		host = self.host,
-		port = self.port,
-		path = path,
+		host = options.host,
+		port = options.port,
+		path = options.path,
 		method = 'POST',
 		headers = headers
 	}
@@ -51,29 +51,69 @@ function KeystoneClient:getToken(callback)
 	local req = http.request(reqOptions, function (res) 
 	
 		res:on('data', function (data) 
-			local parsed = json.parse(data)	
-			if callback then callback(parsed) end	
-			end)
+			if dataType == 'json' then
+				data = json.parse(data)	
+			end
 
-		res:on('error', function (err)  p(err.message) end)
+			if callback then callback(data) end	
+		end)
+
+		res:on('error', function (err)  req:emit('error', err.message) end)
 	end)
 
-	req:on('error', function (err) self:emit('error', err.message) end)
-	req:write(postData)
+	req:write(data)
 	req:done()
+
+	return req
+end
+
+function KeystoneClient:buildData(tenantName, username, password)
+	local data = json.stringify({auth = { tenantName = tenantName, passwordCredentials ={username = username,  password = password}} })
+
+	return data
+end
+
+function KeystoneClient:getToken(callback)
+	
+	local data = self:buildData(self.tenantName, self.username, self.password)
+	local path = '/v2.0/tokens'
+	local options = {
+		host = self.host,
+		port = self.port,
+		path = path
+	}
+
+	local req = post(options, data, callback, 'json') 
+	-- Propagate errors 
+	req:on('error', function (err) self:emit(err) end)
 end
 
 local client = KeystoneClient:new('localhost', 5000, 'admin', 'admin', '123456')
 client:on('error', p)
 client:getToken(function (data)
-
 	local hasError = get('error', data)
-			if hasError ~= nil then
-				p(get('error', data))
-			else
-				p(get('id', (get('token',(get('access', data))))))
-			end
-		end)
+
+	if hasError ~= nil then
+		p(get('error', data))
+	else
+		p(get('id', (get('token',(get('access', data))))))
+	end
+end)
+
+local CeilometerClient = Emitter:extend()
+
+function CeilometerClient:initialize(host, port, tenantName, username, password)
+	self.host = host
+	self.port = port
+	self.tenantName = tenantName
+	self.username = username
+	self.password = password
+end
+
+function CeilometerClient:getMetric(metric, groupBy)
+	print('unimplemented!')
+	return nil
+end
 
 function HttpDataSource:initialize(host, port, path, username, password)
 	self.host = host
