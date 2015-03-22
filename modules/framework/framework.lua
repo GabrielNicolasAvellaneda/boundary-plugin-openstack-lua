@@ -12,6 +12,7 @@ local io = require('io')
 local http = require('http')
 local table = require('table')
 local net = require('net')
+local json = require('json')
 
 local framework = {}
 
@@ -19,6 +20,46 @@ framework.string = {}
 framework.functional = {}
 framework.table = {}
 framework.util = {}
+framework.http = {}
+
+function framework.http.post(options, data, callback, dataType)
+	local headers = {} 
+	if type(options.headers) == 'table' then
+		headers = options.headers
+	end
+
+	if dataType == 'json' then
+		headers['Content-Type'] = 'application/json'
+		headers['Content-Length'] = #data 
+		headers['Accept'] = 'application/json'
+	end
+
+	local reqOptions = {
+		host = options.host,
+		port = options.port,
+		path = options.path,
+		method = 'POST',
+		headers = headers
+	}
+
+	local req = http.request(reqOptions, function (res) 
+	
+		res:on('data', function (data) 
+			if dataType == 'json' then
+				data = json.parse(data)	
+			end
+
+			if callback then callback(data) end	
+		end)
+
+		res:on('error', function (err)  req:emit('error', err.message) end)
+	end)
+
+	req:write(data)
+	req:done()
+
+	return req
+end
 
 function framework.util.megaBytesToBytes(mb)
 	return mb * 1024 * 1024
@@ -123,6 +164,7 @@ exportable(framework.string)
 exportable(framework.util)
 exportable(framework.functional)
 exportable(framework.table)
+exportable(framework.http)
 
 local DataSource = Emitter:extend()
 framework.DataSource = DataSource

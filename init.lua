@@ -7,6 +7,7 @@ local math = require('math')
 local json = require('json')
 local net = require('net') -- TODO: This dependency will be moved to the framework.
 local http = require('http')
+local table = require('table')
 require('fun')(true)
 
 local params = framework.boundary.param
@@ -27,44 +28,30 @@ function KeystoneClient:initialize(host, port, tenantName, username, password)
 end
 
 local get = framework.table.get
+local post = framework.http.post
 
-function post(options, data, callback, dataType)
-	local headers = {} 
-	if type(options.headers) == 'table' then
-		headers = options.headers
+local Nothing = {
+	_create = function () return Nothing end,
+	__index = _create, 
+	isNothing = true
+}
+setmetatable(Nothing, Nothing)
+
+function Nothing.isNothing(value) 
+	return value and value.isNothing	
+end
+
+function Nothing.apply(map)
+	if type(map) ~= 'table' then
+		return
 	end
 
-	if dataType == 'json' then
-		headers['Content-Type'] = 'application/json'
-		headers['Content-Length'] = #data 
-		headers['Accept'] = 'application/json'
+	local mt = self or Nothing
+	setmetatable(map, mt) 
+
+	for _, v in pairs(map) do
+		apply(v)
 	end
-
-	local reqOptions = {
-		host = options.host,
-		port = options.port,
-		path = options.path,
-		method = 'POST',
-		headers = headers
-	}
-
-	local req = http.request(reqOptions, function (res) 
-	
-		res:on('data', function (data) 
-			if dataType == 'json' then
-				data = json.parse(data)	
-			end
-
-			if callback then callback(data) end	
-		end)
-
-		res:on('error', function (err)  req:emit('error', err.message) end)
-	end)
-
-	req:write(data)
-	req:done()
-
-	return req
 end
 
 function KeystoneClient:buildData(tenantName, username, password)
@@ -88,17 +75,20 @@ function KeystoneClient:getToken(callback)
 	req:on('error', function (err) self:emit(err) end)
 end
 
-local client = KeystoneClient:new('localhost', 5000, 'admin', 'admin', '123456')
-client:on('error', p)
-client:getToken(function (data)
-	local hasError = get('error', data)
+function getEndpoint(name, endpoints)
+	
+	return totable(filter(function (e) return e.name == name end, endpoints))[1]
+end
 
-	if hasError ~= nil then
-		p(get('error', data))
-	else
-		p(get('id', (get('token',(get('access', data))))))
-	end
-end)
+
+function getAdminUrl(endpoint)
+	return get('adminURL', nth(1, get('endpoints', endpoint)))
+end
+
+function getToken(data)
+	return get('id', (get('token',(get('access', data)))))
+end
+
 
 local CeilometerClient = Emitter:extend()
 
@@ -110,19 +100,36 @@ function CeilometerClient:initialize(host, port, tenantName, username, password)
 	self.password = password
 end
 
-function CeilometerClient:getMetric(token, metric, period, groupBy, callback)
+function CeilometerClient:getMetric(metric, period, groupBy, callback)
 
-	local headers = {}
-	headers['X-Auth-Token'] = token
+	local client = KeystoneClient:new(self.host, self.port, self.tenantName, self.username, self.password)
+	client:on('error', function (err) 
+		-- Propagate errors
+		self:emit('error', err)
+	end)
 
-	if callback then
-		callback()
-	end
-	return nil
+	client:getToken(function (data)
+		local hasError = get('error', data)
+		if hasError ~= nil then
+			-- Propagate errors
+			self:emit('error', data)
+		else
+			local token = getToken(data) 
+			local endpoints = get('serviceCatalog', get('access', data))
+			local adminUrl = getAdminUrl(getEndpoint('ceilometer', endpoints))
+
+			local headers = {}
+			headers['X-Auth-Token'] = token
+
+			if callback then
+				callback()
+			end
+		end
+	end)
 end
 
-local ceilometer = CeilometerClient:new('localhost', 8777, '/v2/meters/image.size/statistics?period=300&aggregate.func=avg', 'admin', 'admin', 'password') 
-ceilometer:getMetric('f6d090a82cbf4be68b8168b5954c3fbe', 'cpu.util', 300, 'avg', function () print('getMetric callback') end) 
+local ceilometer = CeilometerClient:new('localhost', 5000, 'admin', 'admin', '123456') 
+ceilometer:getMetric('cpu.util', 300, 'avg', function () print('getMetric callback') end) 
 
 function HttpDataSource:initialize(host, port, path, tenantName, username, password)
 	self.host = host
