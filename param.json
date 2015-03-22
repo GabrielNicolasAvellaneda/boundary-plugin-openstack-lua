@@ -1,5 +1,5 @@
 {
-	"pollInterval":2000,
+	"pollInterval":3000,
 	"minValue":1,
 	"maxValue":10
 }

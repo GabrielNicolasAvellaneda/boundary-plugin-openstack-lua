@@ -110,18 +110,30 @@ function CeilometerClient:initialize(host, port, tenantName, username, password)
 	self.password = password
 end
 
-function CeilometerClient:getMetric(metric, groupBy)
-	print('unimplemented!')
+function CeilometerClient:getMetric(token, metric, period, groupBy, callback)
+
+	local headers = {}
+	headers['X-Auth-Token'] = token
+
+	if callback then
+		callback()
+	end
 	return nil
 end
 
-function HttpDataSource:initialize(host, port, path, username, password)
+local ceilometer = CeilometerClient:new('localhost', 8777, '/v2/meters/image.size/statistics?period=300&aggregate.func=avg', 'admin', 'admin', 'password') 
+ceilometer:getMetric('f6d090a82cbf4be68b8168b5954c3fbe', 'cpu.util', 300, 'avg', function () print('getMetric callback') end) 
+
+function HttpDataSource:initialize(host, port, path, tenantName, username, password)
 	self.host = host
 	self.port = port
 	self.path = path
+	self.tenantName = tenantName
 	self.username = username
 	self.password = password
 end
+
+
 
 function HttpDataSource:hasCredentials()
 	return stringutil.notEmpty(self.username) and stringutil.notEmpty(self.password)
