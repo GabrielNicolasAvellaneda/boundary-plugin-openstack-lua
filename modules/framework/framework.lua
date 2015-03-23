@@ -40,17 +40,22 @@ function framework.http.get(options, data, callback, dataType, debug)
 	}
 
 	local req = http.request(reqOptions, function (res) 
-	
-		res:on('data', function (data) 
-			if debug then
-				p(data)
-			end
 
+
+		local response = ''
+		res:on('end', function ()
 			if dataType == 'json' then
-				data = json.parse(data)	
+				response = json.parse(response)	
 			end
 
-			if callback then callback(data) end	
+			if callback then callback(response) end
+		end)
+
+		res:on('data', function (chunk) 
+			if debug then
+				print(chunk)
+			end
+			response = response .. framework.string.trim(chunk)
 		end)
 
 		-- Propagate errors
@@ -96,7 +101,10 @@ function framework.http.post(options, data, callback, dataType)
 			if callback then callback(response) end	
 		end)
 
-		res:on('data', function (chunk) response = response .. chunk end) 
+		res:on('data', function (chunk) 
+			
+			response = response .. chunk
+		end) 
 
 		res:on('error', function (err)  req:emit('error', err.message) end)
 	end)

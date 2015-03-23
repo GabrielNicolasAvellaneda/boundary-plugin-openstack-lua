@@ -148,8 +148,8 @@ mapping['instance'] = {sum = 'OS_INSTANCE_SUM', max = 'OS_INSTANCE_MAX'}
 mapping['memory'] = {sum = 'OS_MEMORY_SUM', avg = 'OS_MEMORY_AVG'}
 mapping['memory.usage'] = {sum = 'OS_MEMORY_USAGE_SUM', avg = 'OS_MEMORY_USAGE_AVG'}
 mapping['volume'] = {sum = 'OS_VOLUME_SUM', avg = 'OS_VOLUME_AVG'}
---mapping['image'] = {sum = 'OS_IMAGE_SUM', avg = 'OS_IMAGE_AVG'}
---mapping['image.size'] = {avg = 'OS_IMAGE_SIZE_AVG', sum = 'OS_IMAGE_SIZE_SUM'}
+mapping['image'] = {sum = 'OS_IMAGE_SUM', avg = 'OS_IMAGE_AVG'}
+mapping['image.size'] = {avg = 'OS_IMAGE_SIZE_AVG', sum = 'OS_IMAGE_SIZE_SUM'}
 mapping['disk.read.requests.rate'] = {sum = 'OS_DISK_READ_RATE_SUM', avg = 'OS_DISK_READ_RATE_AVG'}
 mapping['disk.write.requests.rate'] = {sum = 'OS_DISK_WRITE_RATE_SUM', avg = 'OS_DISK_WRITE_RATE_AVG'}
 mapping['network.incoming.bytes'] = {sum = 'OS_NETWORK_IN_BYTES_SUM', avg = 'OS_NETWORK_IN_BYTES_AVG'}
