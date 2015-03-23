@@ -22,6 +22,49 @@ framework.table = {}
 framework.util = {}
 framework.http = {}
 
+function framework.http.get(options, data, callback, dataType, debug)
+	local headers = {}
+	if type(options.headers) == 'table' then
+		headers = options.headers
+	end
+
+	if dataType == 'json' then
+		headers['Accept'] = 'application/json'
+	end
+	
+	local reqOptions = {
+		host = options.host,
+		port = options.port,
+		path = options.path,
+		headers = headers
+	}
+
+	local req = http.request(reqOptions, function (res) 
+	
+		res:on('data', function (data) 
+			if debug then
+				p(data)
+			end
+
+			if dataType == 'json' then
+				data = json.parse(data)	
+			end
+
+			if callback then callback(data) end	
+		end)
+
+		-- Propagate errors
+		res:on('error', function (err)  req:emit('error', err.message) end)
+	end)
+
+	if data ~= nil then
+		req:write(data)
+	end
+	req:done()
+
+	return req
+end
+
 function framework.http.post(options, data, callback, dataType)
 	local headers = {} 
 	if type(options.headers) == 'table' then
@@ -44,13 +87,16 @@ function framework.http.post(options, data, callback, dataType)
 
 	local req = http.request(reqOptions, function (res) 
 	
-		res:on('data', function (data) 
+		local response = ''
+		res:on('end', function () 
 			if dataType == 'json' then
-				data = json.parse(data)	
+				response = json.parse(response)	
 			end
 
-			if callback then callback(data) end	
+			if callback then callback(response) end	
 		end)
+
+		res:on('data', function (chunk) response = response .. chunk end) 
 
 		res:on('error', function (err)  req:emit('error', err.message) end)
 	end)
@@ -78,6 +124,10 @@ function framework.functional.compose(f, g)
 end
 
 function framework.table.get(key, map)
+	if type(map) ~= 'table' then
+		return nil 
+	end
+
 	return map[key]
 end
 
@@ -165,6 +215,12 @@ exportable(framework.util)
 exportable(framework.functional)
 exportable(framework.table)
 exportable(framework.http)
+
+function Emitter:propagate(eventName, target)
+	if target.emit then
+		self:on(eventName, function (...) target:emit(eventName, ...) end)
+	end
+end
 
 local DataSource = Emitter:extend()
 framework.DataSource = DataSource
@@ -260,16 +316,16 @@ function Plugin:initialize(params, dataSource)
 end
 
 function Plugin:onPoll()
-	self.dataSource:fetch(self, function (data) self:parseValues(data) end )	
+	self.dataSource:fetch(self, function (...) self:parseValues(...) end )	
 end
 
-function Plugin:parseValues(data)
-	local metrics = self:onParseValues(data)
+function Plugin:parseValues(...)
+	local metrics = self:onParseValues(...)
 
 	self:report(metrics)
 end
 
-function Plugin:onParseValues(data)
+function Plugin:onParseValues(...)
 	p('Plugin:onParseValues')
 	return {}	
 end

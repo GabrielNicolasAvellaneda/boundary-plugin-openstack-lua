@@ -8,6 +8,7 @@ local json = require('json')
 local net = require('net') -- TODO: This dependency will be moved to the framework.
 local http = require('http')
 local table = require('table')
+local url = require('url')
 require('fun')(true)
 
 local params = framework.boundary.param
@@ -29,6 +30,7 @@ end
 
 local get = framework.table.get
 local post = framework.http.post
+local request = framework.http.get
 
 local Nothing = {
 	_create = function () return Nothing end,
@@ -41,7 +43,7 @@ function Nothing.isNothing(value)
 	return value and value.isNothing	
 end
 
-function Nothing.apply(map)
+function Nothing:apply(map)
 	if type(map) ~= 'table' then
 		return
 	end
@@ -77,7 +79,7 @@ end
 
 function getEndpoint(name, endpoints)
 	
-	return totable(filter(function (e) return e.name == name end, endpoints))[1]
+	return nth(1, totable(filter(function (e) return e.name == name end, endpoints)))
 end
 
 
@@ -92,21 +94,19 @@ end
 
 local CeilometerClient = Emitter:extend()
 
-function CeilometerClient:initialize(host, port, tenantName, username, password)
+function CeilometerClient:initialize(host, port, tenant, username, password)
 	self.host = host
 	self.port = port
-	self.tenantName = tenantName
+	self.tenant = tenant
 	self.username = username
 	self.password = password
 end
 
-function CeilometerClient:getMetric(metric, period, groupBy, callback)
 
-	local client = KeystoneClient:new(self.host, self.port, self.tenantName, self.username, self.password)
-	client:on('error', function (err) 
-		-- Propagate errors
-		self:emit('error', err)
-	end)
+function CeilometerClient:getMetric(metric, period, callback)
+
+	local client = KeystoneClient:new(self.host, self.port, self.tenant, self.username, self.password)
+	client:propagate('error', self)
 
 	client:getToken(function (data)
 		local hasError = get('error', data)
@@ -120,76 +120,86 @@ function CeilometerClient:getMetric(metric, period, groupBy, callback)
 
 			local headers = {}
 			headers['X-Auth-Token'] = token
-
-			if callback then
-				callback()
-			end
+			local path = '/v2/meters/' .. metric .. '/statistics?period=' .. period	
+			local urlParts = url.parse(adminUrl)
+			
+			local options = {
+				host = urlParts.hostname,
+				port = urlParts.port,
+				path = path,
+				headers = headers
+			}
+			
+			local req = request(options, nil, function (res) 
+				if callback then
+					callback(res)
+				end
+			end, 'json', false)
+			req:propagate('error', self) -- Propagate errors
 		end
 	end)
 end
 
-local ceilometer = CeilometerClient:new('localhost', 5000, 'admin', 'admin', '123456') 
-ceilometer:getMetric('cpu.util', 300, 'avg', function () print('getMetric callback') end) 
+local mapping = {}
 
-function HttpDataSource:initialize(host, port, path, tenantName, username, password)
+mapping['cpu_util'] = {avg = 'OS_CPUUTIL_AVG', sum = 'OS_CPUUTIL_SUM', min = 'OS_CPUUTIL_MIN', max = 'OS_CPUUTIL_MAX'}
+mapping['cpu'] = {avg = 'OS_CPU_AVG', sum = 'OS_CPU_SUM'}
+mapping['instance'] = {sum = 'OS_INSTANCE_SUM', max = 'OS_INSTANCE_MAX'}
+mapping['memory'] = {sum = 'OS_MEMORY_SUM', avg = 'OS_MEMORY_AVG'}
+mapping['memory.usage'] = {sum = 'OS_MEMORY_USAGE_SUM', avg = 'OS_MEMORY_USAGE_AVG'}
+mapping['volume'] = {sum = 'OS_VOLUME_SUM', avg = 'OS_VOLUME_AVG'}
+--mapping['image'] = {sum = 'OS_IMAGE_SUM', avg = 'OS_IMAGE_AVG'}
+--mapping['image.size'] = {avg = 'OS_IMAGE_SIZE_AVG', sum = 'OS_IMAGE_SIZE_SUM'}
+mapping['disk.read.requests.rate'] = {sum = 'OS_DISK_READ_RATE_SUM', avg = 'OS_DISK_READ_RATE_AVG'}
+mapping['disk.write.requests.rate'] = {sum = 'OS_DISK_WRITE_RATE_SUM', avg = 'OS_DISK_WRITE_RATE_AVG'}
+mapping['network.incoming.bytes'] = {sum = 'OS_NETWORK_IN_BYTES_SUM', avg = 'OS_NETWORK_IN_BYTES_AVG'}
+mapping['network.outgoing.bytes'] = {sum = 'OS_NETWORK_OUT_BYTES_SUM', avg = 'OS_NETWORK_OUT_BYTES_AVG'}
+
+local OpenStackDataSource = DataSource:extend()
+
+function OpenStackDataSource:initialize(host, port, tenant, username, password)
+
 	self.host = host
 	self.port = port
-	self.path = path
-	self.tenantName = tenantName
+	self.tenant = tenant
 	self.username = username
 	self.password = password
 end
 
+function OpenStackDataSource:fetch(context, callback)
 
+	local ceilometer = CeilometerClient:new(self.host, self.port, self.tenant, self.username, self.password) 
+	ceilometer:on('error', function (err) p(err.message) end)
 
-function HttpDataSource:hasCredentials()
-	return stringutil.notEmpty(self.username) and stringutil.notEmpty(self.password)
-end
+	for metric,v in pairs(mapping) do
 
-function HttpDataSource:fetch(context, callback)
-	local req = http.request(reqOptions, function (res)
-
-		res:on('data', function (chunk)
-			if callback then
-				callback(data)
+		ceilometer:getMetric(metric, 300,
+			function (result)
+				if callback then
+					callback(metric, result)
+				end
 			end
-		end)
-
-		res:on('error', function (err)
-			self:emit('error', err.message)
-		end)
-
-	end)
-
-	req:on('error', function (err)
-		self:emit('error', err.message)
-	end)
-
-	req:done()
+		)
+	end
 end
 
-function RandomDataSource:initialize(minValue, maxValue)
-	self.minValue = minValue
-	self.maxValue = maxValue
-end
-
-function RandomDataSource:fetch(context, callback)
-	
-	local value = math.random(self.minValue, self.maxValue)
-	if not callback then error('fetch: you must set a callback when calling fetch') end
-
-	callback(value)
-end
-
-local dataSource = RandomDataSource:new(params.minValue, params.maxValue)
+local dataSource = OpenStackDataSource:new(params.service_host, params.service_port, params.service_tenant, params.service_username, params.service_password)
 local plugin = Plugin:new(params, dataSource)
--- Must override to map datasource data to metrics.
-function plugin:onParseValues(data)
+function plugin:onParseValues(metric, data)
 	local result = {}
-	result['BOUNDARY_LUA_SAMPLE'] = tonumber(data)
+	
+	if data == nil then
+		return {}
+	end
+	
+	local m = mapping[metric]
+	local data = nth(1, data)
+	for col, boundaryName in pairs(m) do
+		result[boundaryName] = tonumber(get(col, data))
+	end
 
 	return result 
 end
 
---plugin:poll()
+plugin:poll()
 
