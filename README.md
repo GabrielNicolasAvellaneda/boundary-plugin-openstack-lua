@@ -50,6 +50,7 @@ None
 |service_user    |The user to get into the service panel for OpenStack       |
 |service_timeout |The timeout to get into the service panel for OpenStack    |
 |service_password|The password to get into the service panel for OpenStack   |
+|pollInterval    |How often to query the OpenStack service for metrics       | 
 
 ### Metrics Collected
 
