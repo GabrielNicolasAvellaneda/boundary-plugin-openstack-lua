@@ -17,9 +17,10 @@ params.version = '1.0'
 
 local KeystoneClient = Emitter:extend() 
 
-function KeystoneClient:initialize(host, port, tenantName, username, password)
+function KeystoneClient:initialize(host, port, path, tenantName, username, password)
 	self.host = host
 	self.port = port
+	self.path = path
 	self.tenantName = tenantName
 	self.username = username
 	self.password = password
@@ -62,7 +63,7 @@ end
 function KeystoneClient:getToken(callback)
 	
 	local data = self:buildData(self.tenantName, self.username, self.password)
-	local path = '/v2.0/tokens'
+	local path = self.path .. '/tokens'
 	local options = {
 		host = self.host,
 		port = self.port,
@@ -91,9 +92,10 @@ end
 
 local CeilometerClient = Emitter:extend()
 
-function CeilometerClient:initialize(host, port, tenant, username, password)
+function CeilometerClient:initialize(host, port, path, tenant, username, password)
 	self.host = host
 	self.port = port
+	self.path = path
 	self.tenant = tenant
 	self.username = username
 	self.password = password
@@ -102,7 +104,7 @@ end
 
 function CeilometerClient:getMetric(metric, period, callback)
 
-	local client = KeystoneClient:new(self.host, self.port, self.tenant, self.username, self.password)
+	local client = KeystoneClient:new(self.host, self.port, self.path, self.tenant, self.username, self.password)
 	client:propagate('error', self)
 
 	client:getToken(function (data)
@@ -155,18 +157,18 @@ mapping['network.outgoing.bytes'] = {sum = 'OS_NETWORK_OUT_BYTES_SUM', avg = 'OS
 
 local OpenStackDataSource = DataSource:extend()
 
-function OpenStackDataSource:initialize(host, port, tenant, username, password)
+function OpenStackDataSource:initialize(host, port, path, tenant, username, password)
 
 	self.host = host
 	self.port = port
+	self.path = path
 	self.tenant = tenant
 	self.username = username
 	self.password = password
 end
 
 function OpenStackDataSource:fetch(context, callback)
-
-	local ceilometer = CeilometerClient:new(self.host, self.port, self.tenant, self.username, self.password) 
+	local ceilometer = CeilometerClient:new(self.host, self.port, self.path, self.tenant, self.username, self.password) 
 	ceilometer:propagate('error', context)
 
 	for metric,v in pairs(mapping) do
@@ -181,7 +183,13 @@ function OpenStackDataSource:fetch(context, callback)
 	end
 end
 
-local dataSource = OpenStackDataSource:new(params.service_host, params.service_port, params.service_tenant, params.service_username, params.service_password)
+local service_endpoint = params.service_endpoint or 'http://localhost:5000/v2.0'
+local endpointParts = url.parse(service_endpoint) 
+local service_host = endpointParts.hostname
+local service_port = endpointParts.port
+local service_path = endpointParts.pathname
+
+local dataSource = OpenStackDataSource:new(service_host, service_port, service_path, params.service_tenant, params.service_username, params.service_password)
 local plugin = Plugin:new(params, dataSource)
 function plugin:onParseValues(metric, data)
 	local result = {}

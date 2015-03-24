@@ -1,6 +1,6 @@
 {
-	"pollInterval":10000,
-	"service_host":"localhost",
+	"pollInterval":5000,
+	"service_endpoint":"http://localhost:5000/v2.0",
 	"service_port":5000,
 	"service_tenant": "admin",
 	"service_username":"admin",

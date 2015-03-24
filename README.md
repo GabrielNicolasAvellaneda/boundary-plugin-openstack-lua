@@ -46,7 +46,7 @@ None
 |Field Name      |Description                                                |
 |:---------------|:----------------------------------------------------------|
 |service_tenant  |The tenant to get into the service panel for OpenStack     |
-|service_endpoint|The endpoint to get into the service panel for OpenStack   |
+|service_endpoint|The endpoint to get into the service panel for OpenStack i.e. http://localhost:5000/v2.0  |
 |service_user    |The user to get into the service panel for OpenStack       |
 |service_timeout |The timeout to get into the service panel for OpenStack    |
 |service_password|The password to get into the service panel for OpenStack   |
