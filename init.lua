@@ -111,7 +111,7 @@ function CeilometerClient:getMetric(metric, period, callback)
 		local hasError = get('error', data)
 		if hasError ~= nil then
 			-- Propagate errors
-			self:emit('error', data)
+			self:emit('error', get('error', data))
 		else
 			local token = getToken(data) 
 			local endpoints = get('serviceCatalog', get('access', data))
@@ -120,7 +120,12 @@ function CeilometerClient:getMetric(metric, period, callback)
 			local headers = {}
 			headers['X-Auth-Token'] = token
 			local datetime = os.date("!%Y-%m-%dT%H:%M:%S", os.time()-3600) 
-			local path = '/v2/meters/' .. metric .. '/statistics?q.field=timestamp&q.op=gt&q.type=&q.value=' .. datetime .. '&period=' .. period	
+			--datetime = nil	
+			local path = '/v2/meters/' .. metric .. '/statistics?period=' .. period	
+			if datetime then
+				path = path .. '&q.field=timestamp&q.op=gt&q.type=&q.value=' .. datetime 
+			end
+
 			local urlParts = url.parse(adminUrl)
 			
 			local options = {
@@ -169,7 +174,7 @@ end
 
 function OpenStackDataSource:fetch(context, callback)
 	local ceilometer = CeilometerClient:new(self.host, self.port, self.path, self.tenant, self.username, self.password) 
-	ceilometer:propagate('error', context)
+	ceilometer:propagate('error', self)
 
 	for metric,v in pairs(mapping) do
 
@@ -189,7 +194,7 @@ local service_host = endpointParts.hostname
 local service_port = endpointParts.port
 local service_path = endpointParts.pathname
 
-local dataSource = OpenStackDataSource:new(service_host, service_port, service_path, params.service_tenant, params.service_username, params.service_password)
+local dataSource = OpenStackDataSource:new(service_host, service_port, service_path, params.service_tenant, params.service_user, params.service_password)
 local plugin = Plugin:new(params, dataSource)
 function plugin:onParseValues(metric, data)
 	local result = {}

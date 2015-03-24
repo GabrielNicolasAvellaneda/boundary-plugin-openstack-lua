@@ -391,8 +391,12 @@ function HttpPlugin:initialize(params)
 end
 
 function Plugin:error(err)
-	local msg = tostring(err)
-
+	local msg = ''
+	if type(err) == 'table' then
+		msg = err.message
+	else
+		msg = tostring(err)
+	end
 	print(msg)
 end
 
