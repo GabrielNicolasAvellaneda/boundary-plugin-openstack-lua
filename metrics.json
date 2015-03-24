@@ -1,11 +1,264 @@
 {
-  "result": [
-  {
-    "name": "BOUNDARY_LUA_SAMPLE",
-    "displayName": "Boundary Lua Sample Metric",
-    "description": "A sample lua metric that send random values.",
-    "unit": "percentage",
-    "displayNameShort": "Lua Sample",
-    "defaultAggregate": "avg"
-  }]
+    "result" : [
+        {
+            "name": "OS_CPUUTIL_AVG",
+            "displayName": "Openstack CPU utilization average",
+            "description": "Average openstack CPU utilization on the running node.",
+            "unit": "int",
+            "displayNameShort": "OS CPU util avg",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_CPUUTIL_SUM",
+            "displayName": "Openstack CPU utilization sum",
+            "description": "Summary of total openstack CPU utilization.",
+            "unit": "int",
+            "displayNameShort": "OS CPU util sum",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_CPUUTIL_MIN",
+            "displayName": "Openstack CPU utilization min",
+            "description": "The minimum openstack CPU utilization by VMs running on the node",
+            "unit": "int",
+            "displayNameShort": "OS CPU util min",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_CPUUTIL_MAX",
+            "displayName": "Openstack CPU utilization max",
+            "description": "The maximum openstack CPU utilization by VMs running on the node.",
+            "unit": "int",
+            "displayNameShort": "OS CPU util max",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_CPU_AVG",
+            "displayName": "Average CPU time used",
+            "description": "Avarage CPU time used by the openstack VMs",
+            "unit": "int",
+            "displayNameShort": "OS CPU AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_CPU_SUM",
+            "displayName": "Total CPU time used",
+            "description": "Total CPU time used by the openstack VMs.",
+            "unit": "int",
+            "displayNameShort": "OS CPU SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_INSTANCE_SUM",
+            "displayName": "Total instances running",
+            "description": "Summary of running instances in openstack.",
+            "unit": "int",
+            "displayNameShort": "OS INST SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_INSTANCE_MAX",
+            "displayName": "Maximum started instances",
+            "description": "The maximum number of instances started.",
+            "unit": "int",
+            "displayNameShort": "OS INST MAX",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_MEMORY_SUM",
+            "displayName": "Total allocated memory",
+            "description": "The summary of allocated memory by all VMs on the node.",
+            "unit": "int",
+            "displayNameShort": "OS MEM SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_MEMORY_AVG",
+            "displayName": "Average allocated memory",
+            "description": "The average allocated memory by all VMs on the node.",
+            "unit": "int",
+            "displayNameShort": "OS MEM AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_MEMORY_USAGE_SUM",
+            "displayName": "Total memory used",
+            "description": "Volume of RAM used by the instance from the amount of its allocated memory.",
+            "unit": "int",
+            "displayNameShort": "OS MEM usage SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_MEMORY_USAGE_AVG",
+            "displayName": "Average memory used",
+            "description": "Volume of RAM used by the instance from the amount of its allocated memory..",
+            "unit": "int",
+            "displayNameShort": "OS MEM usage AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_VOLUME_SUM",
+            "displayName": "Total volume created",
+            "description": "Summary of created volumes",
+            "unit": "int",
+            "displayNameShort": "OS VOL SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_VOLUME_AVG",
+            "displayName": "Average volume created",
+            "description": "Average of created volumes by the VMs running on the node.",
+            "unit": "int",
+            "displayNameShort": "OS VOL AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_IMAGE_SUM",
+            "displayName": "Total image created",
+            "description": "Summary of created images on the image service node.",
+            "unit": "int",
+            "displayNameShort": "OS IMG SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_IMAGE_AVG",
+            "displayName": "Average image created",
+            "description": "The average created images on the image service node.",
+            "unit": "int",
+            "displayNameShort": "OS IMG AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_IMAGE_SIZE_SUM",
+            "displayName": "Total size of all images",
+            "description": "The total amount of space used by the created images.",
+            "unit": "int",
+            "displayNameShort": "OS IMG size SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_IMAGE_SIZE_AVG",
+            "displayName": "Average size of all images",
+            "description": "Average amount of space used by the created images",
+            "unit": "int",
+            "displayNameShort": "OS IMG size AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_DISK_READ_RATE_SUM",
+            "displayName": "Summary of disk read rate",
+            "description": "The total amount of disk read rate on all VMs running on the node",
+            "unit": "int",
+            "displayNameShort": "OS DSK R rate SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_DISK_READ_RATE_AVG",
+            "displayName": "Average disk read rate",
+            "description": "Average amount of disk read rate on all VMs running on the node.",
+            "unit": "int",
+            "displayNameShort": "OS DSK R rate AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_DISK_WRITE_RATE_SUM",
+            "displayName": "Summary of disk write rate",
+            "description": "The total amount of disk write rate on all VMs running on the node.",
+            "unit": "int",
+            "displayNameShort": "OS DSK W rate SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_DISK_WRITE_RATE_AVG",
+            "displayName": "Average disk write rate",
+            "description": "Average amount of disk write rate on all VMs running on the node.",
+            "unit": "int",
+            "displayNameShort": "OS DSK W rate AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_NETWORK_IN_BYTES_SUM",
+            "displayName": "Summary of network incoming bytes",
+            "description": "The total amount of network incoming bytes to all VMs running on the node",
+            "unit": "int",
+            "displayNameShort": "OS NET in byte SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_NETWORK_IN_BYTES_AVG",
+            "displayName": "Average of network incoming bytes",
+            "description": "Average amount of network incoming bytes to all VMs running on the node.",
+            "unit": "int",
+            "displayNameShort": "OS NET in byte AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_NETWORK_OUT_BYTES_SUM",
+            "displayName": "Summary of network outgoing bytes",
+            "description": "The total amount of network outgoing bytes from all VMs running on the node",
+            "unit": "int",
+            "displayNameShort": "OS NET out byte SUM",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        },
+        {
+            "name": "OS_NETWORK_OUT_BYTES_AVG",
+            "displayName": "Average of network outgoing bytes",
+            "description": "Average amount of network outgoing bytes from all VMs running on the node.",
+            "unit": "int",
+            "displayNameShort": "OS NET out byte AVG",
+            "defaultResolutionMS": 0,
+            "isDisabled": 0,
+            "defaultAggregate": "avg"
+        }
+    ]
 }

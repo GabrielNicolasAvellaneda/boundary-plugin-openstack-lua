@@ -1,22 +1,19 @@
-local framework = require('framework/framework.lua')
+local framework = require('framework')
 local Plugin = framework.Plugin
 local DataSource = framework.DataSource
 local Emitter = require('core').Emitter
 local stringutils = framework.string
 local math = require('math')
 local json = require('json')
-local net = require('net') -- TODO: This dependency will be moved to the framework.
 local http = require('http')
 local table = require('table')
 local url = require('url')
+local os = require('os')
 require('fun')(true)
 
 local params = framework.boundary.param
 params.name = 'Boundary OpenStack plugin'
 params.version = '1.0'
-
-local HttpDataSource = DataSource:extend()
-local RandomDataSource = DataSource:extend()
 
 local KeystoneClient = Emitter:extend() 
 
@@ -74,7 +71,7 @@ function KeystoneClient:getToken(callback)
 
 	local req = post(options, data, callback, 'json') 
 	-- Propagate errors 
-	req:on('error', function (err) self:emit(err) end)
+	req:propagate('error', self)
 end
 
 function getEndpoint(name, endpoints)
@@ -120,7 +117,8 @@ function CeilometerClient:getMetric(metric, period, callback)
 
 			local headers = {}
 			headers['X-Auth-Token'] = token
-			local path = '/v2/meters/' .. metric .. '/statistics?period=' .. period	
+			local datetime = os.date("!%Y-%m-%dT%H:%M:%S", os.time()-3600) 
+			local path = '/v2/meters/' .. metric .. '/statistics?q.field=timestamp&q.op=gt&q.type=&q.value=' .. datetime .. '&period=' .. period	
 			local urlParts = url.parse(adminUrl)
 			
 			local options = {
@@ -169,7 +167,7 @@ end
 function OpenStackDataSource:fetch(context, callback)
 
 	local ceilometer = CeilometerClient:new(self.host, self.port, self.tenant, self.username, self.password) 
-	ceilometer:on('error', function (err) p(err.message) end)
+	ceilometer:propagate('error', context)
 
 	for metric,v in pairs(mapping) do
 
@@ -193,7 +191,8 @@ function plugin:onParseValues(metric, data)
 	end
 	
 	local m = mapping[metric]
-	local data = nth(1, data)
+	--local data = nth(1, data)
+	local data = data[#data]
 	for col, boundaryName in pairs(m) do
 		result[boundaryName] = tonumber(get(col, data))
 	end
